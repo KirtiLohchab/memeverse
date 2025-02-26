@@ -10,7 +10,7 @@ export interface Meme {
   likes: number;
   comments: number;
   date: string;
-  imageUrl: string;
+  imageUrl?: string;
 }
 
 interface MemeState {
@@ -20,66 +20,77 @@ interface MemeState {
   error: string | null;
 }
 
-export const fetchMemes = createAsyncThunk("memes/fetchMemes", async () => {
-  const response = await fetch("https://api.imgflip.com/get_memes");
-  const data = await response.json();
+interface FetchMemesResponse {
+  id: string;
+  name: string;
+  url: string;
+  width: number;
+  height: number;
+  likes: number;
+  comments: number;
+  date: string;
+}
 
-  return data.data.memes.map((meme: any) => ({
-    id: meme.id,
-    name: meme.name,
-    url: meme.url,
-    width: meme.width || 500,
-    height: meme.height || 500,
-    likes: Math.floor(Math.random() * 1000),
-    comments: Math.floor(Math.random() * 500),
-    date: new Date(
-      Date.now() - Math.floor(Math.random() * 10000000000)
-    ).toISOString(),
-  }));
-});
+export const fetchMemes = createAsyncThunk<FetchMemesResponse[]>(
+  "memes/fetchMemes",
+  async () => {
+    const response = await fetch("https://api.imgflip.com/get_memes");
+    const data = await response.json();
 
-export const uploadMeme = createAsyncThunk(
-  "memes/uploadMeme",
-  async (
-    { file, caption }: { file: File; caption: string },
-    { rejectWithValue }
-  ) => {
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append(
-        "upload_preset",
-        process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!
-      );
-
-      const response = await fetch(
-        "https://api.cloudinary.com/v1_1/YOUR_CLOUDINARY_NAME/image/upload",
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to upload meme");
-      }
-
-      const data = await response.json();
-      return {
-        id: data.public_id,
-        name: caption,
-        url: data.secure_url,
-        width: data.width || 500,
-        height: data.height || 500,
-        likes: Math.floor(Math.random() * 1000),
-        comments: Math.floor(Math.random() * 500),
-        date: new Date().toISOString(),
-      } as Meme;
-    } catch (error: any) {
-      return rejectWithValue(error.message || "Upload failed");
-    }
+    return data.data.memes.map((meme: Record<string, unknown>) => ({
+      id: String(meme.id),
+      name: String(meme.name),
+      url: String(meme.url),
+      width: Number(meme.width) || 500,
+      height: Number(meme.height) || 500,
+      likes: Math.floor(Math.random() * 1000),
+      comments: Math.floor(Math.random() * 500),
+      date: new Date(
+        Date.now() - Math.floor(Math.random() * 10000000000)
+      ).toISOString(),
+    }));
   }
 );
+
+export const uploadMeme = createAsyncThunk<
+  Meme,
+  { file: File; caption: string }
+>("memes/uploadMeme", async ({ file, caption }, { rejectWithValue }) => {
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append(
+      "upload_preset",
+      process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || ""
+    );
+
+    const response = await fetch(
+      "https://api.cloudinary.com/v1_1/YOUR_CLOUDINARY_NAME/image/upload",
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to upload meme");
+    }
+
+    const data = (await response.json()) as Record<string, unknown>;
+    return {
+      id: String(data.public_id),
+      name: caption,
+      url: String(data.secure_url),
+      width: Number(data.width) || 500,
+      height: Number(data.height) || 500,
+      likes: Math.floor(Math.random() * 1000),
+      comments: Math.floor(Math.random() * 500),
+      date: new Date().toISOString(),
+    };
+  } catch (error) {
+    return rejectWithValue((error as Error).message || "Upload failed");
+  }
+});
 
 const initialState: MemeState = {
   memes: [],

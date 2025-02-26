@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import { useAppDispatch } from "@/redux/hooks";
 import { RootState } from "@/redux/store";
 import { fetchMemes } from "@/redux/memeSlice";
@@ -27,7 +27,7 @@ const Leaderboard: React.FC = () => {
         <h2 className="text-xl font-semibold mb-8">
           🔥 Top 10 Most Liked Memes
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
           {topMemes.map((meme, index) => (
             <motion.div
               key={meme.id}

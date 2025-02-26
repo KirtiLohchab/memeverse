@@ -31,7 +31,7 @@ const Explore = () => {
 
   // Category Filtering Logic
   const getCategoryFilteredMemes = () => {
-    let filteredMemes = [...memes];
+    const filteredMemes = [...memes];
     if (selectedCategory === "Trending") {
       return filteredMemes.filter((meme) => meme.likes > 100);
     }

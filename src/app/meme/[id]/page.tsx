@@ -5,14 +5,14 @@ import { useParams } from "next/navigation";
 import Image from "next/image";
 import { useAppSelector, useAppDispatch } from "@/redux/hooks";
 import { RootState } from "@/redux/store";
-import { fetchMemes } from "@/redux/memeSlice";
+import { fetchMemes, Meme } from "@/redux/memeSlice";
 import { motion } from "framer-motion";
 
 const MemeDetails = () => {
-  const { id } = useParams();
+  const { id } = useParams() as { id: string };
   const dispatch = useAppDispatch();
   const { memes, loading } = useAppSelector((state: RootState) => state.memes);
-  const [meme, setMeme] = useState<any>(null);
+  const [meme, setMeme] = useState<Meme | null>(null);
   const [likes, setLikes] = useState<number>(0);
   const [comments, setComments] = useState<string[]>([]);
   const [comment, setComment] = useState<string>("");
@@ -25,10 +25,12 @@ const MemeDetails = () => {
 
   useEffect(() => {
     if (memes.length > 0) {
-      let foundMeme = memes.find((m) => m.id === id);
+      let foundMeme: Meme | undefined = memes.find((m) => m.id === id);
       if (!foundMeme) {
-        const storedMemes = JSON.parse(localStorage.getItem("memes") || "[]");
-        foundMeme = storedMemes.find((m: any) => m.id === id);
+        const storedMemes: Meme[] = JSON.parse(
+          localStorage.getItem("memes") || "[]"
+        );
+        foundMeme = storedMemes.find((m) => m.id === id);
       }
 
       if (foundMeme) {

@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
-
 import { uploadMeme } from "@/redux/memeSlice";
 import NextImage from "next/image";
 
@@ -10,30 +9,30 @@ const UploadPage = () => {
   const dispatch = useAppDispatch();
   const uploading = useAppSelector((state) => state.memes.uploading);
 
-  const [image, setImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [topText, setTopText] = useState("");
   const [bottomText, setBottomText] = useState("");
   const [finalImage, setFinalImage] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
+  // Handle file selection
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      setImage(file);
       setPreviewUrl(URL.createObjectURL(file));
       setFinalImage(null);
     }
   };
 
-  const updatePreview = () => {
+  // Generate meme preview on canvas
+  const updatePreview = useCallback(() => {
     if (!previewUrl || !canvasRef.current) return;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const img = new window.Image();
+    const img = new Image();
     img.src = previewUrl;
 
     img.onload = () => {
@@ -42,25 +41,21 @@ const UploadPage = () => {
       let width = img.width;
       let height = img.height;
 
-      if (width > height) {
-        if (width > maxWidth) {
-          height = (maxWidth / width) * height;
-          width = maxWidth;
-        }
-      } else {
-        if (height > maxHeight) {
-          width = (maxHeight / height) * width;
-          height = maxHeight;
-        }
+      // Resize image to fit within max dimensions
+      if (width > height && width > maxWidth) {
+        height = (maxWidth / width) * height;
+        width = maxWidth;
+      } else if (height > maxHeight) {
+        width = (maxHeight / height) * width;
+        height = maxHeight;
       }
 
       canvas.width = width;
       canvas.height = height;
-
-      // Draw the image on canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0, width, height);
 
+      // Add meme text
       ctx.font = "bold 30px Arial";
       ctx.fillStyle = "white";
       ctx.textAlign = "center";
@@ -69,11 +64,17 @@ const UploadPage = () => {
 
       ctx.strokeText(topText, width / 2, 40);
       ctx.fillText(topText, width / 2, 40);
-
       ctx.strokeText(bottomText, width / 2, height - 20);
       ctx.fillText(bottomText, width / 2, height - 20);
     };
-  };
+  }, [previewUrl, topText, bottomText]);
+
+  // Automatically update preview when inputs change
+  useEffect(() => {
+    if (previewUrl) {
+      updatePreview();
+    }
+  }, [previewUrl, updatePreview]);
 
   // Upload Meme
   const handleUpload = async () => {
@@ -101,14 +102,9 @@ const UploadPage = () => {
     document.body.removeChild(link);
   };
 
-  useEffect(() => {
-    if (previewUrl) {
-      updatePreview();
-    }
-  }, [previewUrl, topText, bottomText]);
-
   return (
-    <div className="container mx-auto p-8 m-10 border bg-gray-200 dark:bg-slate-800  rounded-lg flex flex-col items-center gap-6">
+    <div className="container mx-auto p-8 m-10 border bg-gray-200 dark:bg-slate-800 rounded-lg flex flex-col items-center gap-6">
+      {/* Upload and Input Fields */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
         <div className="flex flex-col text-black gap-4">
           <input
@@ -133,7 +129,7 @@ const UploadPage = () => {
           />
         </div>
 
-        {/* Right: Preview */}
+        {/* Meme Preview */}
         <div className="flex justify-center items-center">
           {previewUrl ? (
             <canvas
@@ -146,6 +142,7 @@ const UploadPage = () => {
         </div>
       </div>
 
+      {/* Generate Meme Button */}
       <button
         onClick={() => {
           if (canvasRef.current) {
@@ -158,6 +155,7 @@ const UploadPage = () => {
         Generate Meme
       </button>
 
+      {/* Upload & Download Buttons */}
       {finalImage && (
         <div className="flex flex-col items-center gap-4">
           <NextImage

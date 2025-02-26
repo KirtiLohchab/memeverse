@@ -1,15 +1,17 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
+import { useAppDispatch } from "@/redux/hooks";
 import { RootState } from "@/redux/store";
 import { updateProfile } from "@/redux/userSlice";
 import AvatarUpload from "@/components/AvatarUpload";
 import MemeCard from "@/components/MemeCard";
 import InfiniteScroll from "@/components/InfiniteScroll";
+import Image from "next/image";
 
 const UserProfile: React.FC = () => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const user = useSelector((state: RootState) => state.user);
   const uploadedMemes = useSelector((state: RootState) => state.memes.memes);
 
@@ -66,7 +68,7 @@ const UserProfile: React.FC = () => {
 
       <div className="bg-gray-200 dark:bg-gray-800 p-6 shadow-md rounded-lg max-w-md mx-auto relative">
         <div className="absolute top-1 left-1/2 transform -translate-x-1/2">
-          <img
+          <Image
             src={avatarPreview}
             alt="Avatar"
             className="w-20 h-20 rounded-full object-cover border-4 border-gray-300 dark:border-gray-700"
@@ -119,7 +121,7 @@ const UserProfile: React.FC = () => {
           {showUploaded ? " Uploaded Memes" : "Liked Memes"}
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mt-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-4">
           {uploadedMemes.slice(0, memesToShow).map((meme) => (
             <MemeCard key={meme.id} meme={meme} />
           ))}
