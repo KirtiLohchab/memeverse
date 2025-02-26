@@ -17,20 +17,6 @@ Image Upload: Cloudinary
 Backend API: Imgflip API (for meme fetching)
 Deployment: Vercel
 
-📂 Project Structure
-src/
-│── app/ # Next.js app directory
-│ ├── upload/ # Upload meme page
-│ ├── explore/ # Explore memes page
-│ ├── profile/ # User profile page
-│ ├── leaderboard/ # Leaderboard page
-│ ├── meme/ # Meme details page
-│── components/ # Reusable UI components
-│── redux/ # Redux store and slices
-│── utils/ # API calls and helper functions
-│── constants/ # API URLs, categories, etc.
-│── configs/ # Cloudinary settings
-
 🏗️ Setup & Installation
 
 Clone the repository
